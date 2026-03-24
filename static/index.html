@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北海道旅遊拆帳</title>
+  <meta name="description" content="旅遊拆帳計算工具 - 北海道之旅花費分攤計算">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div class="login-container" id="loginScreen">
+    <div class="login-card">
+      <h1>🏔️ 旅遊拆帳</h1>
+      <p class="subtitle">選擇你的名字來開始</p>
+      <div style="text-align:center">
+        <span class="trip-badge">🇯🇵 北海道之旅</span>
+      </div>
+      <div class="form-group">
+        <label for="memberSelect">選擇成員</label>
+        <select id="memberSelect">
+          <option value="">請選擇...</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" onclick="login()">
+        進入系統
+      </button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div class="app-container" id="appContainer">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <h1>🏔️ 北海道拆帳</h1>
+      </div>
+      <div class="user-badge">
+        <div class="user-avatar" id="userAvatar"></div>
+        <span class="name" id="userName"></span>
+        <button class="btn-logout" onclick="logout()">登出</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="account" onclick="switchTab('account')">
+        💳 我的帳戶
+      </button>
+      <button class="tab-btn" data-tab="expenses" onclick="switchTab('expenses')">
+        📊 花費明細
+      </button>
+      <button class="tab-btn" data-tab="settlement" onclick="switchTab('settlement')">
+        💰 拆帳結果
+      </button>
+    </div>
+
+    <!-- Tab: My Account -->
+    <div class="tab-content active" id="tab-account">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🏦</span> 銀行帳號設定
+        </div>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">
+          設定你的銀行帳號，方便其他人轉帳給你
+        </p>
+        <div class="bank-form">
+          <div class="form-group">
+            <label for="bankName">銀行名稱</label>
+            <input type="text" id="bankName" placeholder="例：中國信託">
+          </div>
+          <div class="form-group">
+            <label for="bankAccount">銀行帳號</label>
+            <input type="text" id="bankAccount" placeholder="例：1234567890">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:auto" onclick="saveBankAccount()">
+          💾 儲存帳號
+        </button>
+        <div id="qrSection" class="qr-section" style="display:none;">
+          <img id="qrCodeImg" class="qr-code-img" alt="QR Code">
+          <div class="qr-info">
+            <h3>你的收款 QR Code</h3>
+            <p id="qrBankDisplay"></p>
+            <p id="qrAccountDisplay"></p>
+            <p style="color:var(--text-muted);font-size:12px;margin-top:8px;">
+              其他人可以掃描此 QR Code 查看你的帳號
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- All members bank accounts -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">👥</span> 所有成員帳號
+        </div>
+        <div id="allBankAccounts"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Expenses -->
+    <div class="tab-content" id="tab-expenses">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📋</span> 花費明細表
+          <span class="rate-badge" style="margin-left:auto;">
+            💱 1 JPY = <span id="rateDisplay">0.2038</span> TWD
+          </span>
+        </div>
+        <div class="table-wrapper">
+          <table id="expenseTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>備註</th>
+                <th>代墊人</th>
+                <th>應付人員</th>
+                <th>台幣</th>
+                <th>日幣</th>
+                <th>台幣總額</th>
+                <th>類別</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody id="expenseBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Settlement -->
+    <div class="tab-content" id="tab-settlement">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">📊</span> 每人淨額
+        </div>
+        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
+          正數 = 可拿回的錢（代墊較多）• 負數 = 需要付出的錢
+        </p>
+        <div class="settlement-grid" id="balanceGrid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">💸</span> 轉帳清單
+        </div>
+        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
+          依照最少轉帳次數計算
+        </p>
+        <div class="transfer-list" id="transferList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for QR Code -->
+  <div class="modal-overlay" id="qrModal" style="display:none" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h3 id="modalTitle"></h3>
+      <img id="modalQrImg" alt="QR Code" style="max-width:200px;border-radius:12px;">
+      <p id="modalInfo"></p>
+      <button class="btn btn-secondary" onclick="document.getElementById('qrModal').style.display='none'">
+        關閉
+      </button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
