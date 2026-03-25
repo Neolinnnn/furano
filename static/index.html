@@ -4,38 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>北海道旅遊拆帳</title>
-  <meta name="description" content="旅遊拆帳計算工具 - 北海道之旅花費分攤計算">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <!-- Loader -->
+  <div id="loaderOverlay" style="display:none">
+    <div class="spinner"></div>
+    <div style="color:white;font-weight:600">處理中...</div>
+  </div>
 
-  <!-- Login Screen -->
+  <!-- Login -->
   <div class="login-container" id="loginScreen">
     <div class="login-card">
       <h1>🏔️ 旅遊拆帳</h1>
       <p class="subtitle">選擇你的名字來開始</p>
-      <div style="text-align:center">
-        <span class="trip-badge">🇯🇵 北海道之旅</span>
-      </div>
+      <div style="text-align:center"><span class="trip-badge">🇯🇵 北海道之旅</span></div>
       <div class="form-group">
-        <label for="memberSelect">選擇成員</label>
-        <select id="memberSelect">
-          <option value="">請選擇...</option>
-        </select>
+        <label>選擇成員</label>
+        <select id="memberSelect"><option value="">請選擇...</option></select>
       </div>
-      <button class="btn btn-primary" id="loginBtn" onclick="login()">
-        進入系統
-      </button>
+      <button class="btn btn-primary" onclick="login()">進入系統</button>
     </div>
   </div>
 
   <!-- Main App -->
   <div class="app-container" id="appContainer">
-    <!-- Header -->
     <header class="app-header">
-      <div class="logo">
-        <h1>🏔️ 北海道拆帳</h1>
-      </div>
+      <div class="logo"><h1>🏔️ 北海道拆帳</h1></div>
       <div class="user-badge">
         <div class="user-avatar" id="userAvatar"></div>
         <span class="name" id="userName"></span>
@@ -43,85 +38,111 @@
       </div>
     </header>
 
-    <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-btn active" data-tab="account" onclick="switchTab('account')">
-        💳 我的帳戶
-      </button>
-      <button class="tab-btn" data-tab="expenses" onclick="switchTab('expenses')">
-        📊 花費明細
-      </button>
-      <button class="tab-btn" data-tab="settlement" onclick="switchTab('settlement')">
-        💰 拆帳結果
-      </button>
+      <button class="tab-btn active" data-tab="account" onclick="switchTab('account')">💳 我的帳戶</button>
+      <button class="tab-btn" data-tab="expenses" onclick="switchTab('expenses')">📊 花費明細</button>
+      <button class="tab-btn" data-tab="settlement" onclick="switchTab('settlement')">💰 拆帳結果</button>
     </div>
 
-    <!-- Tab: My Account -->
+    <!-- Tab 1: Account -->
     <div class="tab-content active" id="tab-account">
+      <!-- Personal Summary Added Here -->
+      <div id="personalSummary" class="personal-summary" style="display:none;"></div>
+
       <div class="card">
-        <div class="card-title">
-          <span class="icon">🏦</span> 銀行帳號設定
-        </div>
-        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">
-          設定你的銀行帳號，方便其他人轉帳給你
-        </p>
+        <div class="card-title"><span class="icon">🏦</span> 我的帳號設定</div>
         <div class="bank-form">
           <div class="form-group">
-            <label for="bankName">銀行名稱</label>
+            <label>銀行名稱</label>
             <input type="text" id="bankName" placeholder="例：中國信託">
           </div>
           <div class="form-group">
-            <label for="bankAccount">銀行帳號</label>
+            <label>銀行帳號</label>
             <input type="text" id="bankAccount" placeholder="例：1234567890">
           </div>
         </div>
-        <button class="btn btn-primary" style="width:auto" onclick="saveBankAccount()">
-          💾 儲存帳號
-        </button>
+        <div style="display:flex;gap:12px;">
+          <button class="btn btn-primary" onclick="saveBankAccount()">💾 儲存</button>
+          <button class="btn btn-danger" id="btnDeleteBank" style="display:none;" onclick="deleteBankAccount()">🗑️ 刪除</button>
+        </div>
         <div id="qrSection" class="qr-section" style="display:none;">
           <img id="qrCodeImg" class="qr-code-img" alt="QR Code">
           <div class="qr-info">
-            <h3>你的收款 QR Code</h3>
+            <h3>收款 QR Code</h3>
             <p id="qrBankDisplay"></p>
             <p id="qrAccountDisplay"></p>
-            <p style="color:var(--text-muted);font-size:12px;margin-top:8px;">
-              其他人可以掃描此 QR Code 查看你的帳號
-            </p>
           </div>
         </div>
       </div>
 
-      <!-- All members bank accounts -->
       <div class="card">
-        <div class="card-title">
-          <span class="icon">👥</span> 所有成員帳號
-        </div>
+        <div class="card-title"><span class="icon">👥</span> 成員帳號列表</div>
         <div id="allBankAccounts"></div>
       </div>
     </div>
 
-    <!-- Tab: Expenses -->
+    <!-- Tab 2: Expenses -->
     <div class="tab-content" id="tab-expenses">
-      <div class="card">
-        <div class="card-title">
-          <span class="icon">📋</span> 花費明細表
-          <span class="rate-badge" style="margin-left:auto;">
-            💱 1 JPY = <span id="rateDisplay">0.2038</span> TWD
-          </span>
+      <!-- Dashboard Stats -->
+      <div class="dashboard-grid">
+        <div class="dash-card">
+          <div class="dash-label">總筆數</div>
+          <div class="dash-value" id="dashCount">0</div>
         </div>
+        <div class="dash-card">
+          <div class="dash-label">台幣記帳總計</div>
+          <div class="dash-value" id="dashTwd">NT$ 0</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-label">日幣記帳總計</div>
+          <div class="dash-value" id="dashJpy">¥ 0</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-label">換算台幣總額</div>
+          <div class="dash-value" id="dashCalcTwd">NT$ 0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="icon">📋</span> 花費明細表
+          </div>
+          <button class="btn btn-success btn-sm" onclick="showAddExpenseModal()">➕ 新增明細</button>
+        </div>
+
+        <div class="table-actions">
+          <select id="filterCategory" class="filter-select" onchange="renderExpenseTable()">
+            <option value="">🎯 所有類別</option>
+            <option value="住宿">住宿</option>
+            <option value="交通">交通</option>
+            <option value="移動">移動</option>
+            <option value="餐飲">餐飲</option>
+            <option value="雪場">雪場</option>
+            <option value="門票/活動">門票/活動</option>
+          </select>
+          <select id="filterPayer" class="filter-select" onchange="renderExpenseTable()">
+            <option value="">👤 所有代墊人</option>
+          </select>
+          <span style="margin-left:auto;font-size:12px;color:var(--text-muted)">📝 雙擊表格內容可編輯</span>
+        </div>
+
         <div class="table-wrapper">
           <table id="expenseTable">
             <thead>
               <tr>
-                <th>#</th>
-                <th>備註</th>
-                <th>代墊人</th>
+                <th onclick="toggleSort('id')"># ↕</th>
+                <th onclick="toggleSort('date')">日期 ↕</th>
+                <th onclick="toggleSort('item')">項目 ↕</th>
+                <th onclick="toggleSort('note')">備註 ↕</th>
+                <th onclick="toggleSort('payer')">代墊人 ↕</th>
                 <th>應付人員</th>
-                <th>台幣</th>
-                <th>日幣</th>
-                <th>台幣總額</th>
-                <th>類別</th>
-                <th>狀態</th>
+                <th onclick="toggleSort('amount_twd')">台幣 ↕</th>
+                <th onclick="toggleSort('amount_jpy')">日幣 ↕</th>
+                <th onclick="toggleSort('amount_twd_total')">台幣總額 ↕</th>
+                <th onclick="toggleSort('category')">類別 ↕</th>
+                <th onclick="toggleSort('status')">狀態 ↕</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody id="expenseBody"></tbody>
@@ -130,39 +151,100 @@
       </div>
     </div>
 
-    <!-- Tab: Settlement -->
+    <!-- Tab 3: Settlement -->
     <div class="tab-content" id="tab-settlement">
       <div class="card">
-        <div class="card-title">
-          <span class="icon">📊</span> 每人淨額
-        </div>
-        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
-          正數 = 可拿回的錢（代墊較多）• 負數 = 需要付出的錢
-        </p>
+        <div class="card-title"><span class="icon">📊</span> 每人結算淨額</div>
+        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">正數 = 可收回 • 負數 = 需支付</p>
         <div class="settlement-grid" id="balanceGrid"></div>
       </div>
-
       <div class="card">
-        <div class="card-title">
-          <span class="icon">💸</span> 轉帳清單
-        </div>
-        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">
-          依照最少轉帳次數計算
-        </p>
+        <div class="card-title"><span class="icon">💸</span> 最佳化轉帳清單</div>
+        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">依照最少轉帳次數演算法計算</p>
         <div class="transfer-list" id="transferList"></div>
+      </div>
+
+      <!-- 個人明細驗算 -->
+      <div class="card" style="margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+          <h3 style="margin:0;"><span class="icon">🔍</span> 個人明細驗算</h3>
+          <select id="detailMemberSelect" onchange="renderPersonalDetails()" style="padding:5px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(255,255,255,0.1); color:white; width: 140px; font-size:14px;">
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table id="expenseTable" style="margin-top:0;">
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>類別</th>
+                <th>項目 / 備註</th>
+                <th>分配明細</th>
+                <th style="text-align:right;">結算影響</th>
+              </tr>
+            </thead>
+            <tbody id="personalDetailBody"></tbody>
+          </table>
+        </div>
+        <div id="personalDetailTotal" style="text-align: right; margin-top: 15px; font-weight: normal; font-size: 1.1em; line-height: 1.6;">
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal for QR Code -->
-  <div class="modal-overlay" id="qrModal" style="display:none" onclick="closeModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <h3 id="modalTitle"></h3>
-      <img id="modalQrImg" alt="QR Code" style="max-width:200px;border-radius:12px;">
-      <p id="modalInfo"></p>
-      <button class="btn btn-secondary" onclick="document.getElementById('qrModal').style.display='none'">
-        關閉
-      </button>
+  <!-- QR Modal -->
+  <div class="modal-overlay" id="qrModal" style="display:none" onclick="document.getElementById('qrModal').style.display='none'">
+    <div class="modal-content" style="max-width:360px;" onclick="event.stopPropagation()">
+      <h3 id="modalTitle" style="margin-bottom:16px;"></h3>
+      <div style="text-align:center;">
+        <img id="modalQrImg" alt="QR Code" style="max-width:200px;border-radius:12px;margin-bottom:16px;">
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">掃描查看帳號資訊</p>
+        <button class="btn btn-secondary" onclick="document.getElementById('qrModal').style.display='none'">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Expense Modal -->
+  <div class="modal-overlay" id="expenseModal" style="display:none">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">新增花費</div>
+        <button class="btn-close" onclick="closeExpenseModal()">×</button>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <div class="form-group" style="flex:1"><label>日期</label><input type="date" id="addDate"></div>
+        <div class="form-group" style="flex:2"><label>項目名稱</label><input type="text" id="addItem" placeholder="例如：札幌晚餐"></div>
+        <div class="form-group" style="flex:2"><label>備註</label><input type="text" id="addNote" placeholder="細節：加麵、加料"></div>
+      </div>
+      <div class="form-group"><label>代墊人</label><select id="addPayer"></select></div>
+      <div class="form-group"><label>應付人員 (留空代表全員分攤)</label><input type="text" id="addDebtors" placeholder="例如：林廷翰、張銘智"></div>
+      <div style="display:flex;gap:12px;">
+        <div class="form-group" style="flex:1"><label>金額 (台幣)</label><input type="number" id="addTwd" placeholder="0"></div>
+        <div class="form-group" style="flex:1"><label>金額 (日幣)</label><input type="number" id="addJpy" placeholder="0"></div>
+      </div>
+      <div class="form-group">
+        <label>類別</label>
+        <select id="addCategory">
+          <option value="餐飲">餐飲</option>
+          <option value="住宿">住宿</option>
+          <option value="交通">交通</option>
+          <option value="移動">移動</option>
+          <option value="雪場">雪場</option>
+          <option value="門票/活動">門票/活動</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="submitAddExpense()">確定新增</button>
+    </div>
+  </div>
+
+  <!-- Expense Breakdown Detail Modal -->
+  <div class="modal-overlay" id="expenseDetailModal" style="display:none" onclick="closeExpenseDetailModal()">
+    <div class="modal-content" style="max-width:450px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">🧾 分攤明細計算</div>
+        <button class="btn-close" onclick="closeExpenseDetailModal()">×</button>
+      </div>
+      <div id="detailModalContent" style="margin-top: 5px;"></div>
     </div>
   </div>
 
