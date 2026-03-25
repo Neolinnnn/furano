@@ -17,7 +17,7 @@ JPY_TO_TWD = 0.2038  # 台銀 2026/03 中旬即期賣出
 
 # 暱稱 → 全名 對應表
 NICKNAME_MAP = {
-    "翰": "林廷翰", "林廷翰": "林廷翰",
+    "翰": "林廷翰", "廷翰": "林廷翰", "林廷翰": "林廷翰",
     "君翰": "林君翰", "君": "林君翰", "林君翰": "林君翰",
     "定": "定定", "定定": "定定",
     "祥": "李鴻祥", "祥哥": "李鴻祥", "李鴻祥": "李鴻祥",
@@ -503,7 +503,7 @@ def generate_expense_md():
                 debtor_display = "-"
             elif debtor_str_raw == "待確認":
                 debtor_display = "待確認"
-            elif not debtors or len(debtors) >= len(all_members) - 1:
+            elif not debtors or len(debtors) >= len(all_members):
                 debtor_display = "全員"
             else:
                 debtor_display = "、".join(debtors)
@@ -539,7 +539,7 @@ def generate_expense_md():
             payers = exp.get("payers", [])
             payer_display = "、".join(payers) if payers else exp["payer"]
             debtors = exp.get("debtors", [])
-            debtor_display = "全員" if not debtors or len(debtors) >= len(all_members) - 1 else "、".join(debtors)
+            debtor_display = "全員" if not debtors or len(debtors) >= len(all_members) else "、".join(debtors)
             twd = f"{int(exp['amount_twd']):,}" if exp.get("amount_twd") is not None else "-"
             jpy = f"{int(exp['amount_jpy']):,}" if exp.get("amount_jpy") is not None else "-"
             status = "✓" if exp["status"] == "ok" else "⚠ 待確認"
