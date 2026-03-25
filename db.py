@@ -386,6 +386,8 @@ def calculate_settlement():
                     "category": exp.get("category", "-"),
                     "type": "pay",
                     "amount": per_payer_paid,
+                    "payers": payers,
+                    "debtors": debtors,
                     "desc": f"代墊 ({len(payers)}人平分)" if len(payers) > 1 else "代墊全額"
                 })
 
@@ -400,6 +402,8 @@ def calculate_settlement():
                     "category": exp.get("category", "-"),
                     "type": "owe",
                     "amount": per_person,
+                    "payers": payers,
+                    "debtors": debtors,
                     "desc": f"應付 ({len(debtors)}人平分)"
                 })
 

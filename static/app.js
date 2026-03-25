@@ -523,19 +523,21 @@ function renderPersonalDetails() {
     if(isPay) totalPay += amount; else totalOwe += amount;
 
     html += `<tr>
-      <td>${escapeHtml(tx.date)}</td>
+      <td>${formatDate(tx.date)}</td>
       <td><span class="category-tag">${catIcon} ${escapeHtml(tx.category || "-")}</span></td>
       <td>
         <div style="font-weight:600">${escapeHtml(tx.item || "-")}</div>
         <div style="font-size:12px;color:var(--text-muted);font-weight:normal">${escapeHtml(tx.note || "-")}</div>
       </td>
+      <td style="font-size:13px;">${escapeHtml((tx.payers || []).join("、") || "-")}</td>
+      <td style="font-size:13px;">${escapeHtml((tx.debtors || []).join("、") || "-")}</td>
       <td><span class="badge ${isPay ? 'badge-ok' : 'badge-pending'}">${escapeHtml(tx.desc)}</span></td>
       <td style="color:${color}; font-weight:bold; text-align:right;">${sign} NT$ ${formatNum(amount)}</td>
     </tr>`;
   });
 
   if (list.length === 0) {
-    html = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px;">無相關明細</td></tr>`;
+    html = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;">無相關明細</td></tr>`;
   }
 
   tbody.innerHTML = html;
@@ -626,6 +628,23 @@ function renderTransfers(transfers) {
 
 // ===== Utilities =====
 function formatNum(n) { return n == null ? "-" : Math.round(n).toLocaleString(); }
+function formatDate(d) {
+  if (!d || d === "-") return "-";
+  // 嘗試解析各種日期格式，輸出 mm/dd
+  const s = String(d).trim();
+  // 已經是 m/dd 或 mm/dd 格式
+  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})/);
+  if (slashMatch) return `${slashMatch[1].padStart(2, '0')}/${slashMatch[2].padStart(2, '0')}`;
+  // X月X日
+  const cnMatch = s.match(/(\d{1,2})月(\d{1,2})日?/);
+  if (cnMatch) return `${cnMatch[1].padStart(2, '0')}/${cnMatch[2].padStart(2, '0')}`;
+  // ISO or Date string
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    return `${String(parsed.getMonth()+1).padStart(2,'0')}/${String(parsed.getDate()).padStart(2,'0')}`;
+  }
+  return d;
+}
 function escapeHtml(str) {
   if (!str) return "";
   const div = document.createElement("div"); div.textContent = str; return div.innerHTML;
