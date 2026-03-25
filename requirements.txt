@@ -1,2 +1,4 @@
-flask
-qrcode[pil]
+flask==3.1.3
+gunicorn==23.0.0
+qrcode==8.2
+pillow==12.1.1

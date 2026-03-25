@@ -143,21 +143,16 @@ def api_export_csv():
 
 # ===== Startup =====
 
+# DB 初始化 + CSV 匯入（gunicorn 和直接執行都會觸發）
+db.init_db()
+imported = db.import_csv_to_db()
+if imported:
+    print("✅ CSV 資料已匯入 SQLite！")
+db.generate_expense_md()
+
+
 if __name__ == "__main__":
-    # 初始化 DB
-    db.init_db()
-
-    # 首次啟動時匯入 CSV
-    imported = db.import_csv_to_db()
-    if imported:
-        print("✅ CSV 資料已匯入 SQLite！")
-    else:
-        print("ℹ️ SQLite 已有資料，跳過 CSV 匯入。")
-
-    # 同步 MD 檔案
-    db.generate_expense_md()
-
-    # 自動開啟瀏覽器 (use_reloader=False 避免開兩次)
+    # 本機開發時自動開瀏覽器
     def open_browser():
         time.sleep(1)
         webbrowser.open("http://127.0.0.1:5000")
