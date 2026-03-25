@@ -264,7 +264,7 @@ function renderExpenseTable() {
     const catIcon = { 住宿: "🏨", 交通: "🚌", 餐飲: "🍜", 雪場: "⛷️", 移動: "✈️", "門票/活動": "🎫" }[exp.category] || "📌";
 
     html += `<tr data-id="${exp.id}">
-      <td>${exp.id + 1}</td>
+      <td>${exp.id}</td>
       <td class="editable" data-field="日期" data-id="${exp.id}" ondblclick="startEdit(this)">${escapeHtml(exp.date || "-")}</td>
       <td class="editable" data-field="項目" data-id="${exp.id}" ondblclick="startEdit(this)">${escapeHtml(exp.item || "-")}</td>
       <td class="editable" data-field="備註" data-id="${exp.id}" ondblclick="startEdit(this)"
@@ -633,4 +633,8 @@ function escapeHtml(str) {
 function showToast(msg, type = "success") {
   const t = document.createElement("div"); t.className = `toast toast-${type}`; t.textContent = msg;
   document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+}
+
+function exportCSV() {
+  window.location.href = "/api/export-csv";
 }
